@@ -1,32 +1,22 @@
 const Task = require("../models/taskModel");
 
-// @desc   Get scheduled tasks
-// @route  GET /api/scheduler
-// @access Public
-const getSchedule = async (req, res) => {
+exports.runScheduler = async (req, res) => {
+  console.log("Scheduler route hit");
+
   try {
-    // 1. Get all tasks from DB
-    const tasks = await Task.find();
+    const tasks = await Task.find().sort({ priority: 1 });
 
-    // 2. Simple scheduling logic (temporary)
-    // Sort by priority (lower number = higher priority)
-    const sortedTasks = tasks.sort((a, b) => a.priority - b.priority);
-
-    // 3. Return response
     res.json({
-      message: "Schedule generated successfully",
-      totalTasks: sortedTasks.length,
-      schedule: sortedTasks,
+      message: "Scheduler working",
+      count: tasks.length,
+      schedule: tasks
     });
 
   } catch (error) {
+    console.error("Scheduler error:", error.message);
+
     res.status(500).json({
-      message: "Error generating schedule",
-      error: error.message,
+      error: error.message
     });
   }
-};
-
-module.exports = {
-  getSchedule,
 };

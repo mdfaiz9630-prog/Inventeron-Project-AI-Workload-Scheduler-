@@ -1,13 +1,8 @@
 const express = require("express");
 const router = express.Router();
 
-router.get("/", (req, res) => {
-  console.log("Scheduler route hit");
+const { runScheduler } = require("../controllers/schedulerController");
 
-  res.json({
-    message: "Scheduler working",
-    schedule: []
-  });
-});
+router.get("/", runScheduler);
 
 module.exports = router;
