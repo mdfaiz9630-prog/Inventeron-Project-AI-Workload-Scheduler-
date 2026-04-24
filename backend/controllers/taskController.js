@@ -1,20 +1,20 @@
 const Task = require("../models/taskModel");
+const { scheduleTask } = require("../services/schedulerEngine");
 
-// CREATE TASK
 exports.createTask = async (req, res) => {
   try {
-    const task = await Task.create(req.body);
-    res.status(201).json(task);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
+    const task = new Task(req.body);
 
-// GET ALL TASKS
-exports.getTasks = async (req, res) => {
-  try {
-    const tasks = await Task.find();
-    res.json(tasks);
+    
+    const result = scheduleTask(task);
+
+    task.assignedNode = result.assignedNode;
+    task.status = "running"; // important (not pending)
+
+    await task.save();
+
+    res.json(task);
+
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

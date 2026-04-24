@@ -12,26 +12,26 @@ app.use(express.json());
 // connect MongoDB
 connectDB();
 
-
 // root test route
-app.get("/", (req,res)=>{
- res.send("API Working 🚀");
+app.get("/", (req, res) => {
+  res.send("API Working 🚀");
 });
 
 
 // routes
 const taskRoutes = require("./routes/taskRoutes");
 const schedulerRoutes = require("./routes/schedulerRoutes");
+const nodeRoutes = require("./routes/nodeRoutes"); // ✅ NEW
 
 app.use("/api/tasks", taskRoutes);
 app.use("/api/scheduler", schedulerRoutes);
+app.use("/api/nodes", nodeRoutes); // ✅ NEW
 
 
 // port
 const PORT = process.env.PORT || 8000;
 
-
 // start server
-app.listen(PORT, ()=>{
- console.log(`Server running on port ${PORT}`);
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });

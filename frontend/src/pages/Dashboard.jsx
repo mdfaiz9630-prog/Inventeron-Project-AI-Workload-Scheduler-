@@ -2,34 +2,60 @@ import { useEffect, useState } from "react";
 
 import DashboardCards from "../components/DashboardCards";
 import WorkloadChart from "../components/WorkloadChart";
+import LiveWorkload from "../components/LiveWorkload";
+import ClusterTopology from "../components/ClusterTopology";
 import MetricsPanel from "../components/MetricsPanel";
-import TaskTable from "../components/TaskTable";
 import TaskForm from "../components/TaskForm";
+import TaskTable from "../components/TaskTable";
 
-function Dashboard(){
+function Dashboard() {
 
-const [data,setData] = useState(null);
+const [data, setData] = useState(null);
+const [nodes, setNodes] = useState(null);
 
 
+// -------------------- FETCH TASKS --------------------
 const loadData = async () => {
-try{
- const res = await fetch("/api/scheduler");
- const json = await res.json();
-
- setData(json);
-
-}catch(error){
- console.error(error);
-}
+  try {
+    const res = await fetch("/api/scheduler");
+    const json = await res.json();
+    setData(json);
+  } catch (error) {
+    console.error(error);
+  }
 };
 
 
-useEffect(()=>{
+// -------------------- FETCH NODES --------------------
+const loadNodes = async () => {
+  try {
+    const res = await fetch("/api/nodes");
+    const json = await res.json();
+    setNodes(json);
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+
+// -------------------- LIVE SYNC --------------------
+useEffect(() => {
+
 loadData();
-},[]);
+loadNodes();
+
+const interval = setInterval(() => {
+  loadData();
+  loadNodes();
+}, 2000);
+
+return () => clearInterval(interval);
+
+}, []);
 
 
-return(
+
+return (
 <div className="min-h-screen bg-gray-900 text-white p-6">
 
 <h1 className="text-3xl font-bold mb-6">
@@ -38,40 +64,61 @@ Distributed AI Workload Scheduler
 
 
 {data ? (
+
 <>
 
 <h2 className="text-lg text-gray-300 mb-4">
 {data.message}
 </h2>
 
-<div className="mt-8">
-<DashboardCards data={data}/>
+
+{/* DASHBOARD CARDS */}
+<div className="mt-6">
+<DashboardCards data={data} />
 </div>
 
 
-<div className="mt-8">
-<WorkloadChart data={data}/>
+{/* WORKLOAD CHART */}
+<div className="mt-6">
+<WorkloadChart data={data} />
 </div>
 
 
-<div className="mt-8">
-<MetricsPanel data={data}/>
+{/* LIVE WORKLOAD ANIMATION */}
+<div className="mt-6">
+<LiveWorkload nodes={nodes} />
 </div>
 
 
-<div className="mt-8">
-<TaskForm refreshData={loadData}/>
+{/* CLUSTER TOPOLOGY */}
+<div className="mt-6">
+<ClusterTopology />
 </div>
 
 
-<div className="mt-8">
-<TaskTable/>
+{/* METRICS */}
+<div className="mt-6">
+<MetricsPanel data={data} />
+</div>
+
+
+{/* TASK FORM */}
+<div className="mt-6">
+<TaskForm refreshData={loadData} />
+</div>
+
+
+{/* TASK TABLE */}
+<div className="mt-6">
+<TaskTable />
 </div>
 
 </>
 
-):(
+) : (
+
 <p>Loading scheduler data...</p>
+
 )}
 
 </div>
