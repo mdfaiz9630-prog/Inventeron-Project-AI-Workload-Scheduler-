@@ -1,20 +1,21 @@
-require("dotenv").config(); // MUST be first
+require("dotenv").config();
 
 const express = require("express");
+const cors = require("cors");
 const connectDB = require("./config/db");
 
 const app = express();
 
 // middleware
+app.use(cors());
 app.use(express.json());
 
 // connect MongoDB
 connectDB();
 
 // test root route
-app.get("/", (req, res) => {
-  console.log("ROOT HIT");
-  res.send("API Working 🚀");
+app.get("/", (req,res)=>{
+ res.send("API Working 🚀");
 });
 
 // routes
@@ -24,10 +25,8 @@ const schedulerRoutes = require("./routes/schedulerRoutes");
 app.use("/api/tasks", taskRoutes);
 app.use("/api/scheduler", schedulerRoutes);
 
-// port
 const PORT = process.env.PORT || 8000;
 
-// start server
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+app.listen(PORT,()=>{
+ console.log(`Server running on port ${PORT}`);
 });
