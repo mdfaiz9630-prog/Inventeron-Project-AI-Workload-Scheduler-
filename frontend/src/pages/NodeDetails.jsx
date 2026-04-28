@@ -10,11 +10,12 @@ const [tasks,setTasks] = useState([]);
 const loadTasks = async () => {
 
 try{
+
 const res = await fetch("/api/tasks");
 const data = await res.json();
 
 const filtered = data.filter(
-(task)=>task.assignedNode === nodeId
+(task)=> task.assignedNode === nodeId
 );
 
 setTasks(filtered);
@@ -25,14 +26,13 @@ console.error(err);
 
 };
 
-
 useEffect(()=>{
 loadTasks();
 },[]);
 
 
-
 return(
+
 <div className="min-h-screen bg-gray-900 text-white p-8">
 
 <h1 className="text-4xl font-bold mb-8">
@@ -41,6 +41,7 @@ return(
 
 
 
+{/* TOP METRICS */}
 <div className="grid md:grid-cols-3 gap-6 mb-8">
 
 <div className="bg-gray-800 rounded-3xl p-6">
@@ -79,7 +80,7 @@ Health
 
 
 
-
+{/* WORKLOADS */}
 <div className="bg-gray-800 rounded-3xl p-6 mb-8">
 
 <h2 className="text-2xl font-bold mb-6">
@@ -97,6 +98,7 @@ No workloads assigned
 <div className="space-y-4">
 
 {tasks.map((task)=>(
+
 <div
 key={task._id}
 className="
@@ -109,6 +111,7 @@ justify-between
 >
 
 <div>
+
 <h3 className="font-semibold">
 {task.title}
 </h3>
@@ -116,6 +119,7 @@ justify-between
 <p className="text-gray-400 text-sm">
 Priority {task.priority}
 </p>
+
 </div>
 
 <span>
@@ -123,6 +127,7 @@ Priority {task.priority}
 </span>
 
 </div>
+
 ))}
 
 </div>
@@ -133,8 +138,8 @@ Priority {task.priority}
 
 
 
-
-<div className="bg-gray-800 rounded-3xl p-6">
+{/* LOAD BALANCING INSIGHT */}
+<div className="bg-gray-800 rounded-3xl p-6 mb-8">
 
 <h2 className="text-2xl font-bold mb-6">
 Load Balancing Insight
@@ -147,7 +152,36 @@ Scheduler dynamically redistributes jobs when utilization rises.
 
 </div>
 
+
+
+{/* NEW MIGRATION EVENT FEATURE */}
+<div className="bg-gray-800 rounded-3xl p-6 mt-8">
+
+<h2 className="text-2xl font-bold mb-6">
+Migration Event
+</h2>
+
+{tasks.length > 4 ? (
+
+<div className="text-yellow-300 font-semibold">
+⚠ Workload migration triggered:
+moving tasks from {nodeId} to CPU-1
 </div>
+
+) : (
+
+<div className="text-green-300 font-semibold">
+No migration required.
+Node stable.
+</div>
+
+)}
+
+</div>
+
+
+</div>
+
 );
 
 }
