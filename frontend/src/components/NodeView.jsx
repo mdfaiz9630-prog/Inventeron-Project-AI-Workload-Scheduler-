@@ -1,4 +1,8 @@
+import { useNavigate } from "react-router-dom";
+
 function NodeView({ tasks }) {
+
+const navigate = useNavigate();
 
 const nodes = [
 {
@@ -45,12 +49,10 @@ rounded-3xl
 p-6
 shadow-xl
 border border-gray-700
-hover:-translate-y-1
-transition
 "
 >
 
-<div className="flex justify-between items-center mb-4">
+<div className="flex justify-between items-center mb-5">
 
 <div>
 <h3 className="text-xl font-bold">
@@ -63,10 +65,10 @@ transition
 </div>
 
 <span className="
-text-xs
 px-3
 py-1
 rounded-full
+text-xs
 bg-green-500/20
 text-green-300
 ">
@@ -76,7 +78,9 @@ text-green-300
 </div>
 
 
+
 <div className="mb-4">
+
 <div className="text-4xl font-bold">
 {node.util}%
 </div>
@@ -84,52 +88,65 @@ text-green-300
 <div className="text-gray-400">
 Utilization
 </div>
+
 </div>
 
 
+
 <div className="w-full bg-gray-700 h-3 rounded mb-5">
+
 <div
-className="bg-green-500 h-3 rounded"
+className="bg-blue-500 h-3 rounded"
 style={{
 width:`${node.util}%`
 }}
 />
+
 </div>
 
 
-<div className="space-y-2 text-sm">
+
+<div className="space-y-3 text-sm">
 
 <div className="flex justify-between">
 <span className="text-gray-400">
 Memory
 </span>
+
 <span>
 {node.memory}
 </span>
 </div>
 
+
 <div className="flex justify-between">
 <span className="text-gray-400">
 Tasks
 </span>
+
 <span>
 {Math.floor(tasks.length/3)+index}
 </span>
 </div>
 
+
 <div className="flex justify-between">
 <span className="text-gray-400">
 Latency
 </span>
+
 <span>
-{10+index*4} ms
+{10 + index*4} ms
 </span>
 </div>
 
 </div>
 
 
-<button className="
+
+<button
+onClick={() => navigate(`/nodes/${node.name}`)}
+className="
 mt-6
 w-full
 bg-blue-600
@@ -138,7 +155,8 @@ rounded-xl
 py-2
 font-semibold
 transition
-">
+"
+>
 View Node
 </button>
 
