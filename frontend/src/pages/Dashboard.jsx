@@ -7,110 +7,138 @@ import ClusterTopology from "../components/ClusterTopology";
 import MetricsPanel from "../components/MetricsPanel";
 import TaskForm from "../components/TaskForm";
 import TaskTable from "../components/TaskTable";
+import NodeView from "../components/NodeView";
 
 function Dashboard() {
 
-const [data, setData] = useState(null);
-const [nodes, setNodes] = useState(null);
+const [data,setData] = useState(null);
+const [nodes,setNodes] = useState(null);
+
+const tasks = data?.schedule || [];
 
 
-// -------------------- FETCH TASKS --------------------
+// ---------------- FETCH SCHEDULER ----------------
 const loadData = async () => {
-  try {
-    const res = await fetch("/api/scheduler");
-    const json = await res.json();
-    setData(json);
-  } catch (error) {
-    console.error(error);
-  }
+
+try{
+const res = await fetch("/api/scheduler");
+const json = await res.json();
+setData(json);
+}catch(error){
+console.error(error);
+}
+
 };
 
 
-// -------------------- FETCH NODES --------------------
+// ---------------- FETCH NODES ----------------
 const loadNodes = async () => {
-  try {
-    const res = await fetch("/api/nodes");
-    const json = await res.json();
-    setNodes(json);
-  } catch (error) {
-    console.error(error);
-  }
+
+try{
+const res = await fetch("/api/nodes");
+const json = await res.json();
+setNodes(json);
+}catch(error){
+console.error(error);
+}
+
 };
 
 
-// -------------------- LIVE SYNC --------------------
-useEffect(() => {
+// ---------------- LIVE REFRESH ----------------
+useEffect(()=>{
 
 loadData();
 loadNodes();
 
-const interval = setInterval(() => {
-  loadData();
-  loadNodes();
-}, 2000);
+const interval = setInterval(()=>{
+loadData();
+loadNodes();
+},2000);
 
-return () => clearInterval(interval);
+return ()=>clearInterval(interval);
 
-}, []);
+},[]);
 
 
 
-return (
-<div className="min-h-screen bg-gray-900 text-white p-6">
+return(
+<div className="min-h-screen bg-gray-900 text-white p-8">
 
-<h1 className="text-3xl font-bold mb-6">
-Distributed AI Workload Scheduler
+{/* HEADER */}
+<div className="mb-10">
+
+<h1 className="text-5xl font-bold mb-3">
+AI Scheduler Control Plane
 </h1>
+
+<p className="text-gray-400 text-lg">
+Real-time distributed workload orchestration dashboard
+</p>
+
+</div>
+
 
 
 {data ? (
 
 <>
 
-<h2 className="text-lg text-gray-300 mb-4">
-{data.message}
-</h2>
-
-
-{/* DASHBOARD CARDS */}
-<div className="mt-6">
-<DashboardCards data={data} />
+{/* KPI CARDS */}
+<div className="mb-8">
+<DashboardCards data={data}/>
 </div>
 
 
-{/* WORKLOAD CHART */}
-<div className="mt-6">
-<WorkloadChart data={data} />
+
+{/* NODE GRID */}
+<div className="mb-8">
+<NodeView tasks={tasks}/>
 </div>
 
 
-{/* LIVE WORKLOAD ANIMATION */}
-<div className="mt-6">
-<LiveWorkload nodes={nodes} />
+
+{/* ANALYTICS ROW */}
+<div className="grid md:grid-cols-2 gap-6 mb-8">
+
+<div className="bg-gray-800 rounded-3xl p-6 shadow-xl">
+<WorkloadChart data={data}/>
+</div>
+
+<div className="bg-gray-800 rounded-3xl p-6 shadow-xl">
+<MetricsPanel data={data}/>
+</div>
+
 </div>
 
 
-{/* CLUSTER TOPOLOGY */}
-<div className="mt-6">
-<ClusterTopology />
+
+{/* LIVE WORKLOAD + TOPOLOGY */}
+<div className="grid md:grid-cols-2 gap-6 mb-8">
+
+<div className="bg-gray-800 rounded-3xl p-6 shadow-xl">
+<LiveWorkload nodes={nodes}/>
+</div>
+
+<div className="bg-gray-800 rounded-3xl p-6 shadow-xl">
+<ClusterTopology/>
+</div>
+
 </div>
 
 
-{/* METRICS */}
-<div className="mt-6">
-<MetricsPanel data={data} />
+
+{/* TASK SECTION */}
+<div className="grid md:grid-cols-3 gap-6">
+
+<div className="md:col-span-1">
+<TaskForm refreshData={loadData}/>
 </div>
 
-
-{/* TASK FORM */}
-<div className="mt-6">
-<TaskForm refreshData={loadData} />
+<div className="md:col-span-2 bg-gray-800 rounded-3xl p-6 shadow-xl">
+<TaskTable/>
 </div>
 
-
-{/* TASK TABLE */}
-<div className="mt-6">
-<TaskTable />
 </div>
 
 </>

@@ -6,10 +6,10 @@ const {
   getTasks
 } = require("../controllers/taskController");
 
-// CREATE task
+// CREATE TASK
 router.post("/", createTask);
 
-// GET tasks
+// GET ALL TASKS
 router.get("/", getTasks);
 
 module.exports = router;

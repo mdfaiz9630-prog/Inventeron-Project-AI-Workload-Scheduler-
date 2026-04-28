@@ -4,36 +4,39 @@ const nodes = {
   "CPU-1": { load: 0, capacity: 100 },
 };
 
-// reset or initialize node state
+// ---------------- RESET NODES ----------------
 const resetNodes = () => {
-  Object.keys(nodes).forEach((n) => {
-    nodes[n].load = 0;
+  Object.keys(nodes).forEach((node) => {
+    nodes[node].load = 0;
   });
 };
 
-// pick best node based on least load
+// ---------------- BEST NODE SELECTION ----------------
 const getBestNode = (task) => {
   let bestNode = null;
   let minLoad = Infinity;
 
   for (const [name, node] of Object.entries(nodes)) {
+
     const projectedLoad = node.load + task.duration;
 
+    // avoid overload
     if (projectedLoad <= node.capacity && projectedLoad < minLoad) {
       minLoad = projectedLoad;
       bestNode = name;
     }
   }
 
-  // fallback if all overloaded
+  // fallback → choose least loaded node
   if (!bestNode) {
-    bestNode = "CPU-1";
+    bestNode = Object.entries(nodes)
+      .sort((a, b) => a[1].load - b[1].load)[0][0];
   }
 
   return bestNode;
 };
 
-// assign task
+// ---------------- SCHEDULE TASK ----------------
 const scheduleTask = (task) => {
   const node = getBestNode(task);
 
@@ -45,7 +48,7 @@ const scheduleTask = (task) => {
   };
 };
 
-// get node status
+// ---------------- GET NODE STATUS ----------------
 const getNodeStatus = () => {
   return nodes;
 };
@@ -54,4 +57,5 @@ module.exports = {
   scheduleTask,
   getNodeStatus,
   resetNodes,
+  nodes
 };
