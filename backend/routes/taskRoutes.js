@@ -3,13 +3,15 @@ const router = express.Router();
 
 const {
   createTask,
-  getTasks
+  getTasks,
+  deleteTask,
+  clearTasks
 } = require("../controllers/taskController");
 
-// CREATE TASK
 router.post("/", createTask);
-
-// GET ALL TASKS
 router.get("/", getTasks);
+
+router.delete("/:id", deleteTask);
+router.delete("/clear/all", clearTasks);
 
 module.exports = router;

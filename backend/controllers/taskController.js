@@ -1,12 +1,12 @@
 const Task = require("../models/taskModel");
 const { scheduleTask, nodes } = require("../services/schedulerEngine");
 
+
 // ---------------- CREATE TASK ----------------
 exports.createTask = async (req, res) => {
   try {
     const task = new Task(req.body);
 
-    // assign node using scheduler
     const result = scheduleTask(task);
 
     task.assignedNode = result.assignedNode;
@@ -15,30 +15,33 @@ exports.createTask = async (req, res) => {
 
     await task.save();
 
-    console.log(`Task created → ${task.title} → ${task.assignedNode}`);
+    if (global.io) {
+      global.io.emit("schedulerUpdate", {
+        event: "task_created",
+        task
+      });
+    }
 
-    // simulate execution completion
     setTimeout(async () => {
-      try {
-        task.status = "completed";
-        task.completedAt = new Date();
+      task.status = "completed";
+      task.completedAt = new Date();
 
-        // release node load safely
-        if (nodes[task.assignedNode]) {
-          nodes[task.assignedNode].load -= task.duration;
-
-          if (nodes[task.assignedNode].load < 0) {
-            nodes[task.assignedNode].load = 0;
-          }
+      if (nodes[task.assignedNode]) {
+        nodes[task.assignedNode].load -= task.duration;
+        if (nodes[task.assignedNode].load < 0) {
+          nodes[task.assignedNode].load = 0;
         }
-
-        await task.save();
-
-        console.log(`Task completed → ${task.title}`);
-
-      } catch (err) {
-        console.error("Completion error:", err.message);
       }
+
+      await task.save();
+
+      if (global.io) {
+        global.io.emit("schedulerUpdate", {
+          event: "task_completed",
+          task
+        });
+      }
+
     }, task.duration * 1000);
 
     res.json(task);
@@ -47,6 +50,7 @@ exports.createTask = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
 
 // ---------------- GET TASKS ----------------
 exports.getTasks = async (req, res) => {
@@ -58,10 +62,57 @@ exports.getTasks = async (req, res) => {
   }
 };
 
-// ---------------- GET NODES (for frontend) ----------------
+
+// ---------------- GET NODES ----------------
 exports.getNodes = async (req, res) => {
   try {
     res.json(nodes);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+
+// ---------------- DELETE SINGLE TASK ----------------
+exports.deleteTask = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const deleted = await Task.findByIdAndDelete(id);
+
+    if (!deleted) {
+      return res.status(404).json({ error: "Task not found" });
+    }
+
+    if (global.io) {
+      global.io.emit("schedulerUpdate", {
+        event: "task_deleted",
+        taskId: id
+      });
+    }
+
+    res.json({ message: "Task deleted" });
+
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+
+// ---------------- CLEAR ALL TASKS ----------------
+exports.clearTasks = async (req, res) => {
+  try {
+
+    await Task.deleteMany({});
+
+    if (global.io) {
+      global.io.emit("schedulerUpdate", {
+        event: "tasks_cleared"
+      });
+    }
+
+    res.json({ message: "All tasks cleared" });
+
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

@@ -1,94 +1,125 @@
 import { useEffect, useState } from "react";
+import { toast } from "react-toastify";
 
-function TaskTable() {
+function TaskTable({ refreshData }) {
 
   const [tasks, setTasks] = useState([]);
-  const [algorithm] = useState("Backend Scheduling");
 
-  // ---------------- FETCH TASKS ----------------
+  // ---------------- LOAD TASKS ----------------
   const loadTasks = async () => {
     try {
-      const res = await fetch("http://localhost:8000/api/tasks");
+      const res = await fetch("/api/tasks");
       const data = await res.json();
       setTasks(data);
     } catch (err) {
-      console.error("Error fetching tasks:", err);
+      toast.error("Failed to load tasks");
     }
   };
 
-  // ---------------- AUTO REFRESH ----------------
   useEffect(() => {
     loadTasks();
-
-    const interval = setInterval(() => {
-      loadTasks();
-    }, 2000);
-
-    return () => clearInterval(interval);
   }, []);
+
+  // ---------------- DELETE TASK ----------------
+  const deleteTask = async (id) => {
+    try {
+      await fetch(`/api/tasks/${id}`, {
+        method: "DELETE",
+      });
+
+      toast.success("Task deleted successfully");
+
+      loadTasks();
+      refreshData?.();
+
+    } catch (err) {
+      toast.error("Delete failed");
+    }
+  };
+
+  // ---------------- CLEAR ALL TASKS ----------------
+  const clearAll = async () => {
+    try {
+      await fetch("/api/tasks/clear/all", {
+        method: "DELETE",
+      });
+
+      toast.warning("All tasks cleared");
+
+      loadTasks();
+      refreshData?.();
+
+    } catch (err) {
+      toast.error("Clear failed");
+    }
+  };
 
 
   return (
-    <div className="mt-8">
+    <div className="bg-gray-800 p-6 rounded-2xl mt-6">
 
-      <h2 className="text-2xl font-bold mb-4">
-        Scheduled Tasks
-      </h2>
+      {/* HEADER */}
+      <div className="flex justify-between mb-4">
+        <h2 className="text-xl font-bold">
+          Scheduled Tasks
+        </h2>
 
-      {/* Algorithm display */}
-      <div className="mb-6 bg-white inline-block rounded-md p-2 shadow-md">
-        <span className="text-black font-semibold">
-          Scheduling Mode: {algorithm}
-        </span>
+        <button
+          onClick={clearAll}
+          className="bg-yellow-500 hover:bg-yellow-600 transition text-black px-3 py-1 rounded"
+        >
+          Clear All
+        </button>
       </div>
 
+
       {/* TABLE */}
-      <div className="bg-gray-800 rounded-2xl p-6 overflow-x-auto">
+      <table className="w-full text-left">
 
-        <table className="w-full text-white">
+        <thead>
+          <tr className="text-gray-400">
+            <th>Task</th>
+            <th>Priority</th>
+            <th>Node</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
 
-          <thead>
-            <tr className="border-b border-gray-600">
-              <th className="p-3 text-left">Task</th>
-              <th className="p-3 text-left">Priority</th>
-              <th className="p-3 text-left">Duration</th>
-              <th className="p-3 text-left">Assigned Node</th>
-              <th className="p-3 text-left">Status</th>
+        <tbody>
+          {tasks.length === 0 ? (
+            <tr>
+              <td colSpan="5" className="text-center text-gray-400 py-4">
+                No tasks available
+              </td>
             </tr>
-          </thead>
+          ) : (
+            tasks.map((task) => (
+              <tr
+                key={task._id}
+                className="border-t border-gray-700"
+              >
 
-          <tbody>
-            {tasks.map((task) => (
-              <tr key={task._id} className="border-b border-gray-700">
+                <td>{task.title}</td>
+                <td>{task.priority}</td>
+                <td>{task.assignedNode || "N/A"}</td>
+                <td>{task.status}</td>
 
-                <td className="p-3">{task.title}</td>
-                <td className="p-3">{task.priority}</td>
-                <td className="p-3">{task.duration}</td>
-
-                {/* REAL BACKEND DATA */}
-                <td className="p-3 font-semibold text-blue-300">
-                  {task.assignedNode || "Not Assigned"}
-                </td>
-
-                <td className="p-3">
-                  <span className={
-                    task.status === "completed"
-                      ? "bg-green-500 px-3 py-1 rounded-full"
-                      : task.status === "running"
-                      ? "bg-yellow-500 px-3 py-1 rounded-full"
-                      : "bg-blue-500 px-3 py-1 rounded-full"
-                  }>
-                    {task.status}
-                  </span>
+                <td>
+                  <button
+                    onClick={() => deleteTask(task._id)}
+                    className="bg-red-500 hover:bg-red-600 transition px-2 py-1 rounded text-white"
+                  >
+                    Delete
+                  </button>
                 </td>
 
               </tr>
-            ))}
-          </tbody>
+            ))
+          )}
+        </tbody>
 
-        </table>
-
-      </div>
+      </table>
 
     </div>
   );

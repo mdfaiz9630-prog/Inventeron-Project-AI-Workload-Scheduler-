@@ -1,0 +1,13 @@
+model_type,input_size,priority,node_type,execution_time,utilization
+cnn,224,1,gpu,80,60
+cnn,128,2,gpu,60,50
+cnn,224,1,cpu,200,85
+cnn,128,3,cpu,150,70
+nlp,512,1,gpu,120,65
+nlp,256,2,gpu,90,55
+nlp,512,1,cpu,300,90
+nlp,256,3,cpu,200,75
+cnn,64,5,gpu,40,30
+cnn,64,5,cpu,100,50
+nlp,128,4,gpu,70,40
+nlp,128,4,cpu,160,60

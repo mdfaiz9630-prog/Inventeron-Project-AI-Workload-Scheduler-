@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import io from "socket.io-client";
 
 import DashboardCards from "../components/DashboardCards";
 import WorkloadChart from "../components/WorkloadChart";
@@ -8,150 +9,142 @@ import MetricsPanel from "../components/MetricsPanel";
 import TaskForm from "../components/TaskForm";
 import TaskTable from "../components/TaskTable";
 import NodeView from "../components/NodeView";
+import LiveTaskFlow from "../components/LiveTaskFlow";
+
+
+// socket instance (single connection)
+const socket = io("http://localhost:8000");
+
 
 function Dashboard() {
 
-const [data,setData] = useState(null);
-const [nodes,setNodes] = useState(null);
+  const [data, setData] = useState(null);
+  const [nodes, setNodes] = useState(null);
 
-const tasks = data?.schedule || [];
-
-
-// ---------------- FETCH SCHEDULER ----------------
-const loadData = async () => {
-
-try{
-const res = await fetch("/api/scheduler");
-const json = await res.json();
-setData(json);
-}catch(error){
-console.error(error);
-}
-
-};
+  const tasks = data?.schedule || [];
 
 
-// ---------------- FETCH NODES ----------------
-const loadNodes = async () => {
-
-try{
-const res = await fetch("/api/nodes");
-const json = await res.json();
-setNodes(json);
-}catch(error){
-console.error(error);
-}
-
-};
+  // ---------------- FETCH SCHEDULER ----------------
+  const loadData = async () => {
+    try {
+      const res = await fetch("/api/scheduler");
+      const json = await res.json();
+      setData(json);
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
 
-// ---------------- LIVE REFRESH ----------------
-useEffect(()=>{
-
-loadData();
-loadNodes();
-
-const interval = setInterval(()=>{
-loadData();
-loadNodes();
-},2000);
-
-return ()=>clearInterval(interval);
-
-},[]);
+  // ---------------- FETCH NODES ----------------
+  const loadNodes = async () => {
+    try {
+      const res = await fetch("/api/nodes");
+      const json = await res.json();
+      setNodes(json);
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
 
+  // ---------------- REALTIME SOCKET SYNC ----------------
+  useEffect(() => {
 
-return(
-<div className="min-h-screen bg-gray-900 text-white p-8">
-
-{/* HEADER */}
-<div className="mb-10">
-
-<h1 className="text-5xl font-bold mb-3">
-AI Scheduler Control Plane
-</h1>
-
-<p className="text-gray-400 text-lg">
-Real-time distributed workload orchestration dashboard
-</p>
-
-</div>
+    loadData();
+    loadNodes();
 
 
+    socket.on("schedulerUpdate", (payload) => {
+      console.log("Live update:", payload);
 
-{data ? (
-
-<>
-
-{/* KPI CARDS */}
-<div className="mb-8">
-<DashboardCards data={data}/>
-</div>
+      loadData();
+      loadNodes();
+    });
 
 
+    return () => {
+      socket.off("schedulerUpdate");
+    };
 
-{/* NODE GRID */}
-<div className="mb-8">
-<NodeView tasks={tasks}/>
-</div>
-
-
-
-{/* ANALYTICS ROW */}
-<div className="grid md:grid-cols-2 gap-6 mb-8">
-
-<div className="bg-gray-800 rounded-3xl p-6 shadow-xl">
-<WorkloadChart data={data}/>
-</div>
-
-<div className="bg-gray-800 rounded-3xl p-6 shadow-xl">
-<MetricsPanel data={data}/>
-</div>
-
-</div>
+  }, []);
 
 
+  return (
+    <div className="min-h-screen bg-gray-900 text-white p-6">
 
-{/* LIVE WORKLOAD + TOPOLOGY */}
-<div className="grid md:grid-cols-2 gap-6 mb-8">
-
-<div className="bg-gray-800 rounded-3xl p-6 shadow-xl">
-<LiveWorkload nodes={nodes}/>
-</div>
-
-<div className="bg-gray-800 rounded-3xl p-6 shadow-xl">
-<ClusterTopology/>
-</div>
-
-</div>
+      <h1 className="text-3xl font-bold mb-6">
+        Distributed AI Workload Scheduler
+      </h1>
 
 
+      {data ? (
+        <>
+          <h2 className="text-lg text-gray-300 mb-4">
+            {data.message}
+          </h2>
 
-{/* TASK SECTION */}
-<div className="grid md:grid-cols-3 gap-6">
 
-<div className="md:col-span-1">
-<TaskForm refreshData={loadData}/>
-</div>
+          {/* DASHBOARD CARDS */}
+          <div className="mt-6">
+            <DashboardCards data={data} />
+          </div>
 
-<div className="md:col-span-2 bg-gray-800 rounded-3xl p-6 shadow-xl">
-<TaskTable/>
-</div>
 
-</div>
+          {/* WORKLOAD CHART */}
+          <div className="mt-6">
+            <WorkloadChart data={data} />
+          </div>
 
-</>
 
-) : (
+          {/* LIVE WORKLOAD VISUAL */}
+          <div className="mt-6">
+            <LiveWorkload nodes={nodes} />
+          </div>
 
-<p>Loading scheduler data...</p>
 
-)}
+          {/* LIVE TASK FLOW (NEW) */}
+          <div className="mt-6">
+            <LiveTaskFlow socket={socket} />
+          </div>
 
-</div>
-);
 
+          {/* CLUSTER TOPOLOGY */}
+          <div className="mt-6">
+            <ClusterTopology />
+          </div>
+
+
+          {/* METRICS */}
+          <div className="mt-6">
+            <MetricsPanel data={data} />
+          </div>
+
+
+          {/* TASK FORM */}
+          <div className="mt-6">
+            <TaskForm refreshData={loadData} />
+          </div>
+
+
+          {/* TASK TABLE */}
+          <div className="mt-6">
+            <TaskTable />
+          </div>
+
+
+          {/* NODE VIEW */}
+          <div className="mt-6">
+            <NodeView tasks={tasks} />
+          </div>
+
+        </>
+      ) : (
+        <p>Loading scheduler data...</p>
+      )}
+
+    </div>
+  );
 }
 
 export default Dashboard;
