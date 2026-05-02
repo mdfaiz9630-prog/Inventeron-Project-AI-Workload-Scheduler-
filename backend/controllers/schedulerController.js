@@ -1,22 +1,21 @@
 const Task = require("../models/taskModel");
 const { runScheduler } = require("../services/schedulerService");
+const { buildNodePayload } = require("../services/schedulerEngine");
 
 exports.runScheduler = async (req, res) => {
   try {
-    const tasksFromDB = await Task.find().sort({ priority: 1 });
+    const tasksFromDB = await Task.find({
+      status: { $in: ["pending", "queued", "running"] },
+    }).sort({ priority: 1 });
 
     const tasks = tasksFromDB.map(task => ({
       name: task.title,
-      type: "cnn",
-      size: task.duration,
+      type: task.modelType || "cnn",
+      size: Number(task.inputSize || task.duration || 0),
       priority: task.priority
     }));
 
-    const nodes = [
-      { name: "GPU-1", type: "gpu", load: 0 },
-      { name: "GPU-2", type: "gpu", load: 0 },
-      { name: "CPU-1", type: "cpu", load: 0 }
-    ];
+    const nodes = buildNodePayload();
 
     const result = await runScheduler(tasks, nodes);
 

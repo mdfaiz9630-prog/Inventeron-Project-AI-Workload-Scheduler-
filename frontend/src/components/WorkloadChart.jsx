@@ -7,33 +7,35 @@ const nodes = data?.nodes || [
 ];
 
 return (
-<div className="w-full">
+<div className="w-full bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
 
-<h2 className="text-2xl font-bold mb-8">
+<h2 className="text-2xl font-bold text-slate-800 mb-6">
 Live Node Utilization
 </h2>
 
-<div className="space-y-8">
+<div className="space-y-5">
 
 {nodes.map((node,index)=>(
 
 <div key={index}>
 
 <div className="flex justify-between mb-2">
-<span className="font-semibold">
+<span className="font-semibold text-slate-700">
 {node.name}
 </span>
 
-<span>
+<span className="text-slate-500">
 {node.load}%
 </span>
 </div>
 
 
-<div className="w-full bg-gray-700 rounded-full h-6">
+<div className="w-full bg-slate-100 rounded-full h-4 overflow-hidden">
 
 <div
-className="bg-blue-500 h-6 rounded-full transition-all"
+className={`h-4 rounded-full transition-all ${
+node.load > 80 ? "bg-rose-500" : node.load > 50 ? "bg-amber-500" : "bg-sky-500"
+}`}
 style={{
 width:`${node.load}%`
 }}

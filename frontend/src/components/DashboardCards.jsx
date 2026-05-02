@@ -1,97 +1,54 @@
-function DashboardCards({ data }) {
+function DashboardCards({ totalTasks, totalNodes, avgUtil, mostLoaded }) {
+  const cards = [
+    {
+      title: "Running Workloads",
+      value: totalTasks,
+      tone: "text-sky-700",
+      chip: "bg-sky-100 text-sky-700",
+      chipText: "Pods",
+    },
+    {
+      title: "Cluster Nodes",
+      value: totalNodes,
+      tone: "text-blue-700",
+      chip: "bg-blue-100 text-blue-700",
+      chipText: "Nodes",
+    },
+    {
+      title: "Average Utilization",
+      value: `${avgUtil}%`,
+      tone: "text-cyan-700",
+      chip: "bg-cyan-100 text-cyan-700",
+      chipText: "Load",
+    },
+    {
+      title: "Most Loaded Node",
+      value: mostLoaded?.name || "N/A",
+      tone: "text-amber-700",
+      chip: "bg-amber-100 text-amber-700",
+      chipText: "Alert",
+    },
+  ];
 
-const totalTasks = data?.schedule?.length || 0;
-const totalNodes = data?.nodes?.length || 3;
-
-const avgUtil =
-totalTasks > 0
-? Math.round(
-data.schedule.reduce(
-(sum,t)=>sum+t.utilizationPercent,
-0
-)/totalTasks
-)
-: 0;
-
-const cards = [
-{
-title:"Active Tasks",
-value:totalTasks,
-sub:"Running workloads"
-},
-{
-title:"Cluster Nodes",
-value:totalNodes,
-sub:"Available compute"
-},
-{
-title:"Utilization",
-value:`${avgUtil}%`,
-sub:"Average load"
-},
-{
-title:"Scheduler Health",
-value:"Healthy",
-sub:"System stable"
-}
-];
-
-return (
-
-<div className="grid md:grid-cols-4 gap-6">
-
-{cards.map((card,index)=>(
-
-<div
-key={index}
-className="
-bg-gradient-to-br
-from-gray-800
-to-gray-900
-rounded-3xl
-p-6
-shadow-xl
-hover:-translate-y-1
-hover:shadow-2xl
-transition
-border border-gray-700
-"
->
-
-<div className="text-gray-400 text-sm mb-3">
-{card.title}
-</div>
-
-<div className="text-4xl font-bold mb-2">
-{card.value}
-</div>
-
-<div className="text-sm text-blue-400">
-{card.sub}
-</div>
-
-{/* fake mini metric bar */}
-<div className="mt-5 w-full bg-gray-700 h-2 rounded">
-<div
-className="bg-green-500 h-2 rounded"
-style={{
-width:
-index===0 ? "70%" :
-index===1 ? "90%" :
-index===2 ? `${avgUtil}%` :
-"100%"
-}}
-/>
-</div>
-
-</div>
-
-))}
-
-</div>
-
-);
-
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+      {cards.map((card) => (
+        <div
+          key={card.title}
+          className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm"
+        >
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-sm text-slate-500">{card.title}</p>
+            <span className={`text-xs font-semibold px-2 py-1 rounded-full ${card.chip}`}>
+              {card.chipText}
+            </span>
+          </div>
+          <h2 className={`text-3xl font-bold ${card.tone}`}>{card.value}</h2>
+          <p className="text-xs text-slate-400 mt-2">Live cluster signal</p>
+        </div>
+      ))}
+    </div>
+  );
 }
 
 export default DashboardCards;

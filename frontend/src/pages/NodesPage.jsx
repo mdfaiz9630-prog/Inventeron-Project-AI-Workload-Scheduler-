@@ -1,16 +1,17 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 function NodesPage(){
 
 const [nodes,setNodes] = useState([]);
 const navigate = useNavigate();
+const BASE_URL = import.meta.env.VITE_API_URL || "";
 
-const loadNodes = async ()=>{
+const loadNodes = useCallback(async ()=>{
 
 try{
 
-const res = await fetch("/api/tasks");
+const res = await fetch(`${BASE_URL}/api/tasks`);
 const tasks = await res.json();
 
 const baseNodes = [
@@ -23,10 +24,6 @@ const computed = baseNodes.map(node=>{
 
 const assignedTasks = tasks.filter(
 t=>t.assignedNode===node.name
-);
-
-const load = assignedTasks.reduce(
-sum=>sum + (Number(sum)===sum?0:0),0
 );
 
 const taskLoad =
@@ -45,33 +42,39 @@ load: Math.min(taskLoad*4,95)
 
 setNodes(computed);
 
-}catch(err){
-console.error(err);
+}catch{
+console.error("Failed to load nodes");
 }
 
-};
+}, [BASE_URL]);
 
 
 useEffect(()=>{
 
-loadNodes();
+const timer = setTimeout(() => {
+void loadNodes();
+}, 0);
 
 const interval=setInterval(()=>{
-loadNodes();
+void loadNodes();
 },2000);
 
-return ()=>clearInterval(interval);
+return ()=>{
+clearTimeout(timer);
+clearInterval(interval);
+};
 
-},[]);
+},[loadNodes]);
 
 
 return(
 
-<div className="min-h-screen bg-gray-900 text-white p-8">
+<div className="min-h-screen bg-slate-50 text-slate-800 p-8">
 
-<h1 className="text-4xl font-bold mb-8">
+<h1 className="text-4xl font-bold mb-2">
 Cluster Nodes
 </h1>
+<p className="text-slate-500 mb-8">Real-time node health and workload pressure</p>
 
 <div className="grid md:grid-cols-3 gap-6">
 
@@ -79,25 +82,27 @@ Cluster Nodes
 
 <div
 key={node.name}
-className="bg-gray-800 rounded-3xl p-6 shadow-xl"
+className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm"
 >
 
-<h2 className="text-2xl font-bold mb-3">
+<h2 className="text-2xl text-slate-800 font-bold mb-2">
 {node.name}
 </h2>
 
-<p className="text-gray-400 mb-4">
-Tasks: {node.tasks}
+<p className="text-slate-500 mb-4">
+Workloads: {node.tasks}
 </p>
 
-<h3 className="text-5xl font-bold mb-4">
+<h3 className="text-5xl text-slate-800 font-bold mb-4">
 {node.load}%
 </h3>
 
 
-<div className="w-full bg-gray-700 h-4 rounded mb-5">
+<div className="w-full bg-slate-100 h-4 rounded mb-5 overflow-hidden">
 <div
-className="bg-blue-500 h-4 rounded"
+className={`h-4 rounded ${
+node.load > 80 ? "bg-rose-500" : node.load > 50 ? "bg-amber-500" : "bg-emerald-500"
+}`}
 style={{
 width:`${node.load}%`
 }}
@@ -105,14 +110,14 @@ width:`${node.load}%`
 </div>
 
 
-<p className="mb-5">
+<p className="mb-5 text-slate-600">
 Status:
 {" "}
-<span className={
+<span className={`px-2 py-1 rounded-full text-xs font-semibold ${
 node.load>80
-? "text-yellow-300"
-: "text-green-300"
-}>
+? "bg-amber-100 text-amber-700"
+: "bg-emerald-100 text-emerald-700"
+}`}>
 {node.load>80 ? "Busy":"Healthy"}
 </span>
 </p>
@@ -120,7 +125,7 @@ node.load>80
 
 <button
 onClick={()=>navigate(`/nodes/${node.name}`)}
-className="w-full bg-blue-600 rounded-xl py-2"
+className="w-full bg-blue-600 text-white rounded-lg py-2 font-semibold hover:bg-blue-700 transition"
 >
 Inspect Node
 </button>

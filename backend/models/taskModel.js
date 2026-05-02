@@ -16,10 +16,20 @@ const taskSchema = new mongoose.Schema({
     default: 30,
   },
 
+  modelType: {
+    type: String,
+    default: "cnn",
+  },
+
+  inputSize: {
+    type: Number,
+    default: 0,
+  },
+
   status: {
     type: String,
     default: "pending", 
-    // pending | running | completed
+    // pending | queued | running | completed
   },
 
   // ✅ IMPORTANT: scheduler output stored here
@@ -37,6 +47,11 @@ const taskSchema = new mongoose.Schema({
   completedAt: {
     type: Date,
     default: null,
+  },
+
+  loadImpact: {
+    type: Number,
+    default: 0,
   },
 
   createdAt: {

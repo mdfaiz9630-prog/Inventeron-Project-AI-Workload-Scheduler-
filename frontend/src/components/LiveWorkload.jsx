@@ -37,15 +37,15 @@ prev=>(prev+1)%jobs.length
 
 return ()=>clearInterval(interval);
 
-},[]);
+},[jobs.length]);
 
 
 
 
 return(
-<div className="bg-gray-800 rounded-2xl p-6 mt-8">
+<div className="bg-white border border-slate-200 rounded-xl p-6 mt-8 shadow-sm">
 
-<h2 className="text-2xl font-bold mb-6">
+<h2 className="text-2xl text-slate-800 font-bold mb-6">
 Live Workload Flow
 </h2>
 
@@ -58,7 +58,7 @@ Live Workload Flow
 
 <div>
 
-<h3 className="text-lg font-semibold mb-4">
+<h3 className="text-lg text-slate-700 font-semibold mb-4">
 Incoming / Migrating Jobs
 </h3>
 
@@ -75,19 +75,19 @@ duration-500
 p-4
 rounded-xl
 ${activeJob===index
-? "bg-blue-600 scale-105"
-: "bg-gray-700"
+? "bg-sky-100 border border-sky-200 scale-[1.02]"
+: "bg-slate-50 border border-slate-200"
 }
 `}
 >
 
 <div className="flex justify-between">
 
-<span>
+<span className="font-semibold text-slate-700">
 {job.name}
 </span>
 
-<span>
+<span className="text-slate-500 text-sm">
 {job.from} → {job.to}
 </span>
 
@@ -96,7 +96,7 @@ ${activeJob===index
 
 {activeJob===index && (
 
-<div className="mt-2 animate-pulse">
+<div className="mt-2 animate-pulse text-sky-700 text-sm font-medium">
 Migrating workload...
 </div>
 
@@ -116,11 +116,11 @@ Migrating workload...
 
 <div>
 
-<h3 className="text-lg font-semibold mb-2">
+<h3 className="text-lg text-slate-700 font-semibold mb-2">
 Compute Nodes
 </h3>
 
-<p className="text-sm text-red-400 mb-4">
+<p className="text-sm text-amber-700 mb-4">
 Auto-balancing active
 </p>
 
@@ -129,18 +129,18 @@ Auto-balancing active
 <div className="space-y-4">
 
 
-<div className="bg-gray-700 p-4 rounded-xl">
+<div className="bg-slate-50 border border-slate-200 p-4 rounded-xl">
 
-GPU-1
+<p className="text-slate-700 font-semibold">GPU-1</p>
 
-<div className="w-full bg-gray-600 rounded mt-2">
+<div className="w-full bg-slate-100 rounded mt-2">
 <div
-className="bg-green-500 h-3 rounded"
+className="bg-emerald-500 h-3 rounded"
 style={{width:"65%"}}
 ></div>
 </div>
 
-<p className="mt-2 text-sm">
+<p className="mt-2 text-sm text-slate-500">
 65% Utilization
 </p>
 
@@ -149,18 +149,18 @@ style={{width:"65%"}}
 
 
 
-<div className="bg-gray-700 p-4 rounded-xl">
+<div className="bg-slate-50 border border-slate-200 p-4 rounded-xl">
 
-CPU-1
+<p className="text-slate-700 font-semibold">CPU-1</p>
 
-<div className="w-full bg-gray-600 rounded mt-2">
+<div className="w-full bg-slate-100 rounded mt-2">
 <div
-className="bg-yellow-500 h-3 rounded"
+className="bg-amber-500 h-3 rounded"
 style={{width:"45%"}}
 ></div>
 </div>
 
-<p className="mt-2 text-sm">
+<p className="mt-2 text-sm text-slate-500">
 45% Utilization
 </p>
 
@@ -169,18 +169,18 @@ style={{width:"45%"}}
 
 
 
-<div className="bg-gray-700 p-4 rounded-xl">
+<div className="bg-slate-50 border border-slate-200 p-4 rounded-xl">
 
-GPU-2
+<p className="text-slate-700 font-semibold">GPU-2</p>
 
-<div className="w-full bg-gray-600 rounded mt-2">
+<div className="w-full bg-slate-100 rounded mt-2">
 <div
-className="bg-red-500 h-3 rounded"
+className="bg-rose-500 h-3 rounded"
 style={{width:"82%"}}
 ></div>
 </div>
 
-<p className="mt-2 text-sm">
+<p className="mt-2 text-sm text-slate-500">
 82% Utilization (Overloaded)
 </p>
 
@@ -198,7 +198,7 @@ style={{width:"82%"}}
 
 
 
-<div className="mt-8 bg-gray-700 p-4 rounded-2xl">
+<div className="mt-8 bg-blue-50 border border-blue-200 text-blue-700 p-4 rounded-xl">
 
 <h3 className="text-xl font-bold mb-2">
 Scheduler Migration Event

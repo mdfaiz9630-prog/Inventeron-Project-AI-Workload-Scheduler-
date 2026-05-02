@@ -1,29 +1,34 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { toast } from "react-toastify";
 
 function TaskTable({ refreshData }) {
 
   const [tasks, setTasks] = useState([]);
+  const BASE_URL = import.meta.env.VITE_API_URL || "";
 
   // ---------------- LOAD TASKS ----------------
-  const loadTasks = async () => {
+  const loadTasks = useCallback(async () => {
     try {
-      const res = await fetch("/api/tasks");
+      const res = await fetch(`${BASE_URL}/api/tasks`);
       const data = await res.json();
       setTasks(data);
-    } catch (err) {
+    } catch {
       toast.error("Failed to load tasks");
     }
-  };
+  }, [BASE_URL]);
 
   useEffect(() => {
-    loadTasks();
-  }, []);
+    const timer = setTimeout(() => {
+      void loadTasks();
+    }, 0);
+
+    return () => clearTimeout(timer);
+  }, [loadTasks]);
 
   // ---------------- DELETE TASK ----------------
   const deleteTask = async (id) => {
     try {
-      await fetch(`/api/tasks/${id}`, {
+      await fetch(`${BASE_URL}/api/tasks/${id}`, {
         method: "DELETE",
       });
 
@@ -32,7 +37,7 @@ function TaskTable({ refreshData }) {
       loadTasks();
       refreshData?.();
 
-    } catch (err) {
+    } catch {
       toast.error("Delete failed");
     }
   };
@@ -40,7 +45,7 @@ function TaskTable({ refreshData }) {
   // ---------------- CLEAR ALL TASKS ----------------
   const clearAll = async () => {
     try {
-      await fetch("/api/tasks/clear/all", {
+      await fetch(`${BASE_URL}/api/tasks/clear/all`, {
         method: "DELETE",
       });
 
@@ -49,24 +54,24 @@ function TaskTable({ refreshData }) {
       loadTasks();
       refreshData?.();
 
-    } catch (err) {
+    } catch {
       toast.error("Clear failed");
     }
   };
 
 
   return (
-    <div className="bg-gray-800 p-6 rounded-2xl mt-6">
+    <div className="bg-white border border-slate-200 p-6 rounded-xl mt-6 shadow-sm">
 
       {/* HEADER */}
       <div className="flex justify-between mb-4">
-        <h2 className="text-xl font-bold">
+        <h2 className="text-xl font-bold text-slate-800">
           Scheduled Tasks
         </h2>
 
         <button
           onClick={clearAll}
-          className="bg-yellow-500 hover:bg-yellow-600 transition text-black px-3 py-1 rounded"
+          className="bg-amber-100 text-amber-800 hover:bg-amber-200 transition px-3 py-1.5 rounded-lg font-semibold"
         >
           Clear All
         </button>
@@ -74,10 +79,10 @@ function TaskTable({ refreshData }) {
 
 
       {/* TABLE */}
-      <table className="w-full text-left">
+      <table className="w-full text-left text-sm">
 
         <thead>
-          <tr className="text-gray-400">
+          <tr className="text-slate-500 border-b border-slate-200">
             <th>Task</th>
             <th>Priority</th>
             <th>Node</th>
@@ -89,7 +94,7 @@ function TaskTable({ refreshData }) {
         <tbody>
           {tasks.length === 0 ? (
             <tr>
-              <td colSpan="5" className="text-center text-gray-400 py-4">
+              <td colSpan="5" className="text-center text-slate-400 py-4">
                 No tasks available
               </td>
             </tr>
@@ -97,7 +102,7 @@ function TaskTable({ refreshData }) {
             tasks.map((task) => (
               <tr
                 key={task._id}
-                className="border-t border-gray-700"
+                className="border-t border-slate-100 text-slate-700"
               >
 
                 <td>{task.title}</td>
@@ -108,7 +113,7 @@ function TaskTable({ refreshData }) {
                 <td>
                   <button
                     onClick={() => deleteTask(task._id)}
-                    className="bg-red-500 hover:bg-red-600 transition px-2 py-1 rounded text-white"
+                    className="bg-rose-100 text-rose-700 hover:bg-rose-200 transition px-2.5 py-1 rounded-lg font-semibold"
                   >
                     Delete
                   </button>

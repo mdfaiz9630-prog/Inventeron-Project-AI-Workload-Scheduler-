@@ -29,35 +29,35 @@ function LiveTaskFlow({ socket }) {
 
 
   return (
-    <div className="bg-gray-800 rounded-3xl p-6 mt-6">
+    <div className="bg-white border border-slate-200 rounded-xl p-6 mt-6 shadow-sm">
 
-      <h2 className="text-xl font-bold mb-4">
+      <h2 className="text-xl text-slate-800 font-bold mb-4">
         Live Workload Flow
       </h2>
 
       <div className="space-y-3">
 
         {events.length === 0 ? (
-          <p className="text-gray-400">
+          <p className="text-slate-400">
             Waiting for task events...
           </p>
         ) : (
           events.map((e) => (
             <div
               key={e.id}
-              className="bg-gray-700 p-3 rounded-xl flex justify-between"
+              className="bg-slate-50 border border-slate-200 p-3 rounded-lg flex justify-between"
             >
               <div>
-                <p className="font-semibold">
+                <p className="font-semibold text-slate-700">
                   {e.task}
                 </p>
 
-                <p className="text-sm text-gray-400">
+                <p className="text-sm text-slate-500">
                   {e.type} → {e.node}
                 </p>
               </div>
 
-              <span className="text-xs text-gray-300">
+              <span className="text-xs text-slate-400">
                 {e.time}
               </span>
             </div>

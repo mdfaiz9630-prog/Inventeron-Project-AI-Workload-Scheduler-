@@ -1,174 +1,140 @@
 import { useNavigate } from "react-router-dom";
 
-function NodeView({ tasks }) {
+function NodeView({ tasks = [] }) {
 
-const navigate = useNavigate();
+  const navigate = useNavigate();
 
-const nodes = [
-{
-name:"GPU-1",
-type:"Inference GPU",
-util:72,
-memory:"18 / 24 GB",
-health:"Healthy"
-},
-{
-name:"CPU-1",
-type:"Compute Node",
-util:48,
-memory:"42 / 64 GB",
-health:"Healthy"
-},
-{
-name:"GPU-2",
-type:"Training GPU",
-util:84,
-memory:"20 / 24 GB",
-health:"Busy"
-}
-];
+  // -------- BUILD NODE DATA FROM TASKS --------
+  const nodeMap = {};
 
-return (
-<div>
+  tasks.forEach((task) => {
+    const node = task.assigned_node;
 
-<h2 className="text-2xl font-bold mb-6">
-Cluster Compute Nodes
-</h2>
+    if (!node) return;
 
-<div className="grid md:grid-cols-3 gap-6">
+    if (!nodeMap[node]) {
+      nodeMap[node] = {
+        tasks: 0,
+        load: 0,
+      };
+    }
 
-{nodes.map((node,index)=>(
+    nodeMap[node].tasks += 1;
+    nodeMap[node].load += task.utilization || 0;
+  });
 
-<div
-key={index}
-className="
-bg-gradient-to-br
-from-gray-800
-to-gray-900
-rounded-3xl
-p-6
-shadow-xl
-border border-gray-700
-"
->
+  // -------- STATIC NODE INFO --------
+  const baseNodes = [
+    { name: "GPU-1", type: "Inference GPU", memory: "18 / 24 GB" },
+    { name: "CPU-1", type: "Compute Node", memory: "42 / 64 GB" },
+    { name: "GPU-2", type: "Training GPU", memory: "20 / 24 GB" }
+  ];
 
-<div className="flex justify-between items-center mb-5">
+  // -------- MERGE --------
+  const nodes = baseNodes.map((node) => {
+    const dynamic = nodeMap[node.name] || { tasks: 0, load: 0 };
 
-<div>
-<h3 className="text-xl font-bold">
-{node.name}
-</h3>
+    const util = Math.min(dynamic.load, 100);
 
-<p className="text-gray-400 text-sm">
-{node.type}
-</p>
-</div>
+    let health = "Healthy";
+    let healthColor = "text-emerald-700 bg-emerald-100";
 
-<span className="
-px-3
-py-1
-rounded-full
-text-xs
-bg-green-500/20
-text-green-300
-">
-{node.health}
-</span>
+    if (util > 80) {
+      health = "Overloaded";
+      healthColor = "text-rose-700 bg-rose-100";
+    } else if (util > 50) {
+      health = "Moderate";
+      healthColor = "text-amber-700 bg-amber-100";
+    }
 
-</div>
+    return {
+      ...node,
+      util,
+      tasks: dynamic.tasks,
+      health,
+      healthColor
+    };
+  });
 
+  // -------- COLOR --------
+  const getColor = (util) => {
+    if (util < 50) return "bg-emerald-500";
+    if (util < 80) return "bg-amber-500";
+    return "bg-rose-500";
+  };
 
+  return (
+    <div>
 
-<div className="mb-4">
+      <h2 className="text-2xl font-bold text-slate-800 mb-6">
+        Cluster Compute Nodes
+      </h2>
 
-<div className="text-4xl font-bold">
-{node.util}%
-</div>
+      <div className="grid md:grid-cols-3 gap-6">
 
-<div className="text-gray-400">
-Utilization
-</div>
+        {nodes.map((node, index) => (
 
-</div>
+          <div
+            key={index}
+            className="
+              bg-white p-6 rounded-xl border border-slate-200
+              hover:-translate-y-1 hover:shadow-lg
+              transition-all duration-200
+            "
+          >
 
+            {/* HEADER */}
+            <div className="flex justify-between mb-4">
+              <div>
+                <h3 className="font-bold text-lg text-slate-800">{node.name}</h3>
+                <p className="text-slate-500 text-sm">{node.type}</p>
+              </div>
 
+              <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${node.healthColor}`}>
+                {node.health}
+              </span>
+            </div>
 
-<div className="w-full bg-gray-700 h-3 rounded mb-5">
+            {/* UTIL */}
+            <div className="text-3xl font-bold text-slate-800 mb-2 transition-all duration-500">
+              {node.util}%
+            </div>
 
-<div
-className="bg-blue-500 h-3 rounded"
-style={{
-width:`${node.util}%`
-}}
-/>
+            {/* BAR */}
+            <div className="w-full bg-slate-100 h-3 rounded overflow-hidden">
+              <div
+                className={`${getColor(node.util)} h-3 rounded transition-all duration-700 ease-in-out`}
+                style={{ width: `${node.util}%` }}
+              />
+            </div>
 
-</div>
+            {/* INFO */}
+            <div className="mt-4 text-sm text-slate-600 space-y-1">
+              <p>Workloads: {node.tasks}</p>
+              <p>Memory: {node.memory}</p>
+            </div>
 
+            {/* BUTTON */}
+            <button
+              onClick={() => navigate(`/nodes/${node.name}`)}
+              className="
+                mt-4 w-full
+                bg-blue-600 hover:bg-blue-700 text-white
+                rounded-lg py-2 font-semibold
+                transition
+              "
+            >
+              View Node
+            </button>
 
+          </div>
 
-<div className="space-y-3 text-sm">
+        ))}
 
-<div className="flex justify-between">
-<span className="text-gray-400">
-Memory
-</span>
+      </div>
 
-<span>
-{node.memory}
-</span>
-</div>
-
-
-<div className="flex justify-between">
-<span className="text-gray-400">
-Tasks
-</span>
-
-<span>
-{Math.floor(tasks.length/3)+index}
-</span>
-</div>
-
-
-<div className="flex justify-between">
-<span className="text-gray-400">
-Latency
-</span>
-
-<span>
-{10 + index*4} ms
-</span>
-</div>
-
-</div>
-
-
-
-<button
-onClick={() => navigate(`/nodes/${node.name}`)}
-className="
-mt-6
-w-full
-bg-blue-600
-hover:bg-blue-500
-rounded-xl
-py-2
-font-semibold
-transition
-"
->
-View Node
-</button>
-
-</div>
-
-))}
-
-</div>
-
-</div>
-);
-
+    </div>
+  );
 }
 
 export default NodeView;
