@@ -1,28 +1,29 @@
-const Task = require("../models/taskModel");
-const { runScheduler } = require("../services/schedulerService");
-const { buildNodePayload } = require("../services/schedulerEngine");
+const { getNodeStatus } = require("../services/schedulerEngine");
+const taskRepository = require("../services/taskRepository");
 
 exports.runScheduler = async (req, res) => {
   try {
-    const tasksFromDB = await Task.find({
-      status: { $in: ["pending", "queued", "running"] },
-    }).sort({ priority: 1 });
+    const tasks = await taskRepository.getAllTasks();
+    const activeSchedule = tasks
+      .filter((task) => ["running", "queued", "pending"].includes(task.status))
+      .map((task) => ({
+        task: task.title,
+        assigned_node: task.assignedNode || "QUEUED",
+        predicted_time: Number(task.inputSize || task.duration || 0),
+        utilization: Number(task.loadImpact || task.utilizationPercent || 0),
+      }));
 
-    const tasks = tasksFromDB.map(task => ({
-      name: task.title,
-      type: task.modelType || "cnn",
-      size: Number(task.inputSize || task.duration || 0),
-      priority: task.priority
+    const nodes = Object.entries(getNodeStatus()).map(([name, node]) => ({
+      name,
+      type: node.type,
+      load: node.load,
+      capacity: node.capacity,
     }));
 
-    const nodes = buildNodePayload();
-
-    const result = await runScheduler(tasks, nodes);
-
     res.json({
-      message: "AI-based scheduling complete",
-      nodes: result.nodes,
-      schedule: result.schedule
+      message: "Load-balanced scheduling state",
+      nodes,
+      schedule: activeSchedule
     });
 
   } catch (error) {

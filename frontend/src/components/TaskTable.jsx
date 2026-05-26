@@ -4,18 +4,17 @@ import { toast } from "react-toastify";
 function TaskTable({ refreshData }) {
 
   const [tasks, setTasks] = useState([]);
-  const BASE_URL = import.meta.env.VITE_API_URL || "";
 
   // ---------------- LOAD TASKS ----------------
   const loadTasks = useCallback(async () => {
     try {
-      const res = await fetch(`${BASE_URL}/api/tasks`);
+      const res = await fetch("/api/tasks");
       const data = await res.json();
       setTasks(data);
     } catch {
       toast.error("Failed to load tasks");
     }
-  }, [BASE_URL]);
+  }, []);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -28,7 +27,7 @@ function TaskTable({ refreshData }) {
   // ---------------- DELETE TASK ----------------
   const deleteTask = async (id) => {
     try {
-      await fetch(`${BASE_URL}/api/tasks/${id}`, {
+      await fetch(`/api/tasks/${id}`, {
         method: "DELETE",
       });
 
@@ -45,7 +44,7 @@ function TaskTable({ refreshData }) {
   // ---------------- CLEAR ALL TASKS ----------------
   const clearAll = async () => {
     try {
-      await fetch(`${BASE_URL}/api/tasks/clear/all`, {
+      await fetch("/api/tasks/clear/all", {
         method: "DELETE",
       });
 

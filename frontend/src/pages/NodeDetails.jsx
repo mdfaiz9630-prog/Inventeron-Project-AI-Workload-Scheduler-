@@ -6,13 +6,12 @@ function NodeDetails(){
 const { nodeId } = useParams();
 
 const [tasks,setTasks] = useState([]);
-const BASE_URL = import.meta.env.VITE_API_URL || "";
 
 useEffect(()=>{
 const timer = setTimeout(() => {
 const loadTasks = async () => {
 try{
-const res = await fetch(`${BASE_URL}/api/tasks`);
+const res = await fetch("/api/tasks");
 const data = await res.json();
 
 const filtered = data.filter(
@@ -29,7 +28,7 @@ void loadTasks();
 }, 0);
 
 return () => clearTimeout(timer);
-},[nodeId, BASE_URL]);
+},[nodeId]);
 
 
 return(

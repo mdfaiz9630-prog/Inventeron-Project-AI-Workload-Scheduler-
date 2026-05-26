@@ -12,13 +12,8 @@ import NodeView from "../components/NodeView";
 import LiveTaskFlow from "../components/LiveTaskFlow";
 import QueuePanel from "../components/QueuePanel";
 
-const SOCKET_URL =
-  import.meta.env.VITE_SOCKET_URL ||
-  import.meta.env.VITE_API_URL ||
-  window.location.origin;
-
-const API_BASE_URL = import.meta.env.VITE_API_URL || "";
-const socket = io(SOCKET_URL);
+// Prefer same-origin in dev so Vite proxy handles /api + /socket.io reliably.
+const socket = io(window.location.origin);
 
 function Dashboard() {
 
@@ -53,7 +48,7 @@ const avgUtil =
   // ---------------- FETCH ----------------
   const loadData = async () => {
     try {
-      const res = await fetch(`${API_BASE_URL}/api/scheduler`);
+      const res = await fetch("/api/scheduler");
       const json = await res.json();
       setData(json);
     } catch (err) {
@@ -63,7 +58,7 @@ const avgUtil =
 
   const loadNodes = async () => {
     try {
-      const res = await fetch(`${API_BASE_URL}/api/nodes`);
+      const res = await fetch("/api/nodes");
       const json = await res.json();
       setNodes(json);
     } catch (err) {

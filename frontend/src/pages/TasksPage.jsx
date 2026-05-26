@@ -3,17 +3,16 @@ import { useCallback, useEffect, useState } from "react";
 function TasksPage() {
 
   const [tasks, setTasks] = useState([]);
-  const BASE_URL = import.meta.env.VITE_API_URL || "";
 
   const loadTasks = useCallback(async () => {
     try {
-      const res = await fetch(`${BASE_URL}/api/tasks`);
+      const res = await fetch("/api/tasks");
       const data = await res.json();
       setTasks(data);
     } catch {
       console.error("Failed to load tasks");
     }
-  }, [BASE_URL]);
+  }, []);
 
   useEffect(() => {
     const timer = setTimeout(() => {

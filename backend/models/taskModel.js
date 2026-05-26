@@ -26,6 +26,11 @@ const taskSchema = new mongoose.Schema({
     default: 0,
   },
 
+  utilizationPercent: {
+    type: Number,
+    default: 0,
+  },
+
   status: {
     type: String,
     default: "pending", 

@@ -5,13 +5,12 @@ function NodesPage(){
 
 const [nodes,setNodes] = useState([]);
 const navigate = useNavigate();
-const BASE_URL = import.meta.env.VITE_API_URL || "";
 
 const loadNodes = useCallback(async ()=>{
 
 try{
 
-const res = await fetch(`${BASE_URL}/api/tasks`);
+const res = await fetch("/api/tasks");
 const tasks = await res.json();
 
 const baseNodes = [
@@ -46,7 +45,7 @@ setNodes(computed);
 console.error("Failed to load nodes");
 }
 
-}, [BASE_URL]);
+}, []);
 
 
 useEffect(()=>{

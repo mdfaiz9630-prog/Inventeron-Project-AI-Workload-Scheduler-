@@ -1,46 +1,54 @@
-const Task = require("../models/taskModel");
 const { scheduleTask, releaseNodeLoad, resetNodes } = require("../services/schedulerEngine");
+const taskRepository = require("../services/taskRepository");
 
 
 // ---------------- CREATE TASK ----------------
 exports.createTask = async (req, res) => {
   try {
-    const task = new Task(req.body);
+    const payload = {
+      ...req.body,
+      inputSize: req.body.inputSize || req.body.duration,
+    };
 
-    const result = await scheduleTask(task);
+    const result = await scheduleTask(payload);
 
-    task.assignedNode = result.assignedNode;
-    task.status = result.status;
-    task.loadImpact = result.loadImpact;
-    task.inputSize = task.inputSize || task.duration;
+    const createdTask = await taskRepository.createTask({
+      ...payload,
+      assignedNode: result.assignedNode,
+      status: result.status,
+      loadImpact: result.loadImpact,
+      startedAt: result.status === "running" ? new Date() : null,
+    });
+
+    let task = createdTask;
     if (result.status === "running") {
-      task.startedAt = new Date();
-    }
+      setTimeout(async () => {
+        const updated = await taskRepository.updateTask(task._id, {
+          status: "completed",
+          completedAt: new Date(),
+        });
 
-    await task.save();
+        if (!updated) {
+          return;
+        }
+
+        releaseNodeLoad(updated.assignedNode, updated.loadImpact);
+        task = updated;
+
+        if (global.io) {
+          global.io.emit("schedulerUpdate", {
+            event: "task_completed",
+            task,
+          });
+        }
+      }, Number(task.duration) * 1000);
+    }
 
     if (global.io) {
       global.io.emit("schedulerUpdate", {
         event: "task_created",
         task
       });
-    }
-
-    if (result.status === "running") {
-      setTimeout(async () => {
-        task.status = "completed";
-        task.completedAt = new Date();
-        releaseNodeLoad(task.assignedNode, task.loadImpact);
-
-        await task.save();
-
-        if (global.io) {
-          global.io.emit("schedulerUpdate", {
-            event: "task_completed",
-            task
-          });
-        }
-      }, task.duration * 1000);
     }
 
     res.json(task);
@@ -54,18 +62,8 @@ exports.createTask = async (req, res) => {
 // ---------------- GET TASKS ----------------
 exports.getTasks = async (req, res) => {
   try {
-    const tasks = await Task.find().sort({ createdAt: -1 });
+    const tasks = await taskRepository.getAllTasks();
     res.json(tasks);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
-
-
-// ---------------- GET NODES ----------------
-exports.getNodes = async (req, res) => {
-  try {
-    res.json(nodes);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -77,7 +75,7 @@ exports.deleteTask = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const deleted = await Task.findByIdAndDelete(id);
+    const deleted = await taskRepository.deleteTask(id);
 
     if (!deleted) {
       return res.status(404).json({ error: "Task not found" });
@@ -106,7 +104,7 @@ exports.deleteTask = async (req, res) => {
 exports.clearTasks = async (req, res) => {
   try {
 
-    await Task.deleteMany({});
+    await taskRepository.clearTasks();
     resetNodes();
 
     if (global.io) {
